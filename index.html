@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Wordle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎂 Birthday Wordle 🎂</h1>
+            <p>Start with a 5-letter word...</p>
+        </header>
+        
+        <div class="game-container">
+            <div id="grid" class="grid">
+                <!-- Grid will be dynamically generated -->
+            </div>
+            
+            <div class="keyboard-container">
+                <div id="keyboard" class="keyboard">
+                    <!-- Keyboard will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="word-input" maxlength="5" placeholder="Enter your guess...">
+            <button id="submit-btn">Submit</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <div id="celebration" class="celebration hidden">
+            <h2>🎉 HAPPY BIRTHDAY! 🎉</h2>
+            <p>You found the birthday message!</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 
