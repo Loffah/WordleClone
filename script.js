@@ -122,8 +122,13 @@ class BirthdayWordle {
         
         submitBtn.addEventListener('click', () => this.submitGuess());
         
-        // Keyboard events
+        // Keyboard events - only handle special keys and when input is not focused
         document.addEventListener('keydown', (e) => {
+            // Don't interfere if user is typing in the input field
+            if (document.activeElement === input) {
+                return;
+            }
+            
             if (e.key === 'Enter') {
                 this.submitGuess();
             } else if (e.key === 'Backspace') {
