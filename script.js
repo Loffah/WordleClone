@@ -5,6 +5,7 @@ class BirthdayWordle {
         this.currentGuess = '';
         this.guesses = [];
         this.currentRow = 0;
+        this.currentCol = 0;
         this.gridSize = 5; // Start with 5 columns
         this.maxRows = 6;
         this.gameState = 'playing'; // playing, won, lost
@@ -17,7 +18,7 @@ class BirthdayWordle {
     initializeGame() {
         this.createGrid();
         this.createKeyboard();
-        this.showMessage("Enter your first 5-letter word!", "info");
+        this.showMessage("Type your first 5-letter word!", "info");
     }
     
     createGrid() {
@@ -32,6 +33,8 @@ class BirthdayWordle {
                 grid.appendChild(cell);
             }
         }
+        
+        this.updateTypingIndicator();
     }
     
     expandGrid() {
@@ -39,6 +42,8 @@ class BirthdayWordle {
         
         this.isExpanded = true;
         this.gridSize = 18; // Full length of "HAPPY BIRTHDAY DOG"
+        this.currentCol = 0;
+        this.currentGuess = '';
         
         const grid = document.getElementById('grid');
         grid.classList.add('expanded');
@@ -59,11 +64,6 @@ class BirthdayWordle {
             }
         }
         
-        // Update input field
-        const input = document.getElementById('word-input');
-        input.maxLength = 18;
-        input.placeholder = "Enter your full guess...";
-        
         // Update header text
         const headerP = document.querySelector('header p');
         headerP.textContent = "Now solve the full message!";
@@ -72,6 +72,7 @@ class BirthdayWordle {
         
         // Re-populate the grid with previous guesses
         this.populateExpandedGrid();
+        this.updateTypingIndicator();
     }
     
     populateExpandedGrid() {
@@ -106,31 +107,10 @@ class BirthdayWordle {
     }
     
     attachEventListeners() {
-        const input = document.getElementById('word-input');
-        const submitBtn = document.getElementById('submit-btn');
-        
-        input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-            this.currentGuess = e.target.value;
-        });
-        
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.submitGuess();
-            }
-        });
-        
-        submitBtn.addEventListener('click', () => this.submitGuess());
-        
-        // Keyboard events - only handle special keys and when input is not focused
+        // Global keyboard events
         document.addEventListener('keydown', (e) => {
-            // Don't interfere if user is typing in the input field
-            if (document.activeElement === input) {
-                return;
-            }
-            
             if (e.key === 'Enter') {
-                this.submitGuess();
+                this.handleKeyPress('ENTER');
             } else if (e.key === 'Backspace') {
                 this.handleKeyPress('BACKSPACE');
             } else if (/^[a-zA-Z]$/.test(e.key)) {
@@ -142,32 +122,95 @@ class BirthdayWordle {
     }
     
     handleKeyPress(key) {
-        const input = document.getElementById('word-input');
+        if (this.gameState !== 'playing') return;
         
         if (key === 'ENTER') {
             this.submitGuess();
         } else if (key === 'BACKSPACE') {
-            this.currentGuess = this.currentGuess.slice(0, -1);
-            input.value = this.currentGuess;
+            this.deleteLetter();
         } else if (key === ' ' && this.isExpanded) {
-            if (this.currentGuess.length < this.gridSize) {
-                this.currentGuess += ' ';
-                input.value = this.currentGuess;
-            }
+            this.addLetter(' ');
         } else if (/^[A-Z]$/.test(key)) {
-            if (this.currentGuess.length < this.gridSize) {
-                this.currentGuess += key;
-                input.value = this.currentGuess;
+            this.addLetter(key);
+        }
+    }
+    
+    addLetter(letter) {
+        if (this.currentCol >= this.gridSize) return;
+        
+        // Skip space positions in expanded mode
+        if (this.isExpanded && (this.currentCol === 5 || this.currentCol === 14)) {
+            if (letter === ' ') {
+                this.currentCol++;
+                this.currentGuess += ' ';
+                this.updateTypingIndicator();
+                return;
+            } else {
+                // Auto-add space and continue
+                this.currentGuess += ' ';
+                this.currentCol++;
+            }
+        }
+        
+        if (this.currentCol >= this.gridSize) return;
+        
+        const cell = document.getElementById(`cell-${this.currentRow}-${this.currentCol}`);
+        if (cell && !cell.classList.contains('space')) {
+            cell.textContent = letter;
+            cell.classList.add('filled');
+            this.currentGuess += letter;
+            this.currentCol++;
+            this.updateTypingIndicator();
+        }
+    }
+    
+    deleteLetter() {
+        if (this.currentCol <= 0) return;
+        
+        this.currentCol--;
+        
+        // Skip space positions when deleting
+        if (this.isExpanded && (this.currentCol === 5 || this.currentCol === 14)) {
+            this.currentGuess = this.currentGuess.slice(0, -1);
+            this.currentCol--;
+        }
+        
+        if (this.currentCol < 0) {
+            this.currentCol = 0;
+            return;
+        }
+        
+        const cell = document.getElementById(`cell-${this.currentRow}-${this.currentCol}`);
+        if (cell && !cell.classList.contains('space')) {
+            cell.textContent = '';
+            cell.classList.remove('filled');
+            this.currentGuess = this.currentGuess.slice(0, -1);
+            this.updateTypingIndicator();
+        }
+    }
+    
+    updateTypingIndicator() {
+        // Remove typing indicator from all cells in current row
+        for (let col = 0; col < this.gridSize; col++) {
+            const cell = document.getElementById(`cell-${this.currentRow}-${col}`);
+            if (cell) {
+                cell.classList.remove('typing');
+            }
+        }
+        
+        // Add typing indicator to current cell
+        if (this.currentCol < this.gridSize) {
+            const currentCell = document.getElementById(`cell-${this.currentRow}-${this.currentCol}`);
+            if (currentCell && !currentCell.classList.contains('space')) {
+                currentCell.classList.add('typing');
             }
         }
     }
     
     submitGuess() {
-        if (this.gameState !== 'playing') return;
-        
         const expectedLength = this.isExpanded ? 18 : 5;
         if (this.currentGuess.length !== expectedLength) {
-            this.showMessage(`Enter a ${expectedLength}-character ${this.isExpanded ? 'phrase' : 'word'}!`, "");
+            this.showMessage(`Type ${expectedLength} ${this.isExpanded ? 'characters' : 'letters'} first!`, "");
             return;
         }
         
@@ -176,8 +219,9 @@ class BirthdayWordle {
             this.guesses.push(this.currentGuess);
             this.displayGuess(this.currentGuess, this.currentRow);
             this.currentRow++;
+            this.currentCol = 0;
+            this.currentGuess = '';
             this.expandGrid();
-            this.clearInput();
             return;
         }
         
@@ -191,17 +235,28 @@ class BirthdayWordle {
             document.getElementById('celebration').classList.remove('hidden');
         } else {
             this.currentRow++;
+            this.currentCol = 0;
+            this.currentGuess = '';
+            
             if (this.currentRow >= this.maxRows) {
                 this.addMoreRows();
             }
+            
+            this.updateTypingIndicator();
         }
-        
-        this.clearInput();
     }
     
     displayGuess(guess, row) {
         const target = this.isExpanded ? this.target : this.target.substring(0, 5);
         const result = this.evaluateGuess(guess, target);
+        
+        // Remove typing indicator from all cells in the row
+        for (let col = 0; col < this.gridSize; col++) {
+            const cell = document.getElementById(`cell-${row}-${col}`);
+            if (cell) {
+                cell.classList.remove('typing');
+            }
+        }
         
         for (let i = 0; i < guess.length; i++) {
             const cell = document.getElementById(`cell-${row}-${i}`);
@@ -293,11 +348,7 @@ class BirthdayWordle {
         }
         
         this.showMessage("Don't give up! Here are some more tries! 🌟", "info");
-    }
-    
-    clearInput() {
-        this.currentGuess = '';
-        document.getElementById('word-input').value = '';
+        this.updateTypingIndicator();
     }
     
     showMessage(text, type) {

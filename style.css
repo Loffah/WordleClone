@@ -51,7 +51,7 @@ header p {
 }
 
 .grid.expanded {
-    grid-template-columns: repeat(18, 40px);
+    grid-template-columns: repeat(18, 30px);
 }
 
 .cell {
@@ -102,45 +102,9 @@ header p {
     border-color: #d3d6da;
 }
 
-.input-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-#word-input {
-    padding: 12px 20px;
-    font-size: 1.1em;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    text-transform: uppercase;
-    min-width: 200px;
-}
-
-#word-input:focus {
-    outline: none;
+.cell.typing {
     border-color: #667eea;
-}
-
-#submit-btn {
-    padding: 12px 25px;
-    font-size: 1.1em;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-#submit-btn:hover {
-    background: #5a6fd8;
-}
-
-#submit-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+    background-color: #f8f9ff;
 }
 
 .keyboard {
@@ -277,15 +241,5 @@ header p {
     
     .grid.expanded {
         grid-template-columns: repeat(18, 30px);
-    }
-    
-    .input-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    #word-input {
-        margin-bottom: 10px;
-        min-width: 250px;
     }
 } 
